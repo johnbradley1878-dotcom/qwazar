@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>KeyBot Pad – Bluetooth Macro Pad for Keyestudio KeyBot</title>
+  <meta name="description" content="Colourful Bluetooth macro pad for driving and caring for your Keyestudio KeyBot tamagotchi robot over an HC-06 module, with customisable spare slots.">
+  <meta name="theme-color" content="#120d24">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="icons/icon-192.png" alt="" class="brand-icon">
+      <h1>KeyBot <span>Pad</span></h1>
+    </div>
+    <button id="btn-connect" class="connect-pill" data-state="off">
+      <span class="dot"></span><span id="connect-text">Connect</span>
+    </button>
+  </header>
+
+  <div id="demo-banner" class="banner" hidden>
+    Bluetooth serial isn't available in this browser – <b>demo mode</b>. Open in Chrome on Android to control the robot.
+  </div>
+
+  <main class="layout">
+    <section class="card speech-card" aria-live="polite">
+      <div class="speech-face" id="speech-face">🤖</div>
+      <p id="speech-text" class="speech-text">Pair your HC-06 in Android Bluetooth settings, then tap <b>Connect</b>.</p>
+    </section>
+
+    <section class="card stats-card" aria-labelledby="stats-title">
+      <div class="card-head">
+        <h2 id="stats-title">Needs</h2>
+        <div class="badges">
+          <span id="badge-sleep" class="badge badge-sleep" hidden>💤 Asleep</span>
+          <span id="badge-poo" class="badge badge-poo" hidden>💩 Needs change</span>
+        </div>
+        <button id="btn-stats" class="icon-btn" title="Refresh stats">⟳</button>
+      </div>
+      <div class="meters" id="meters"></div>
+    </section>
+
+    <section class="card drive-card" aria-labelledby="drive-title">
+      <div class="card-head"><h2 id="drive-title">Drive</h2><small>hold to keep moving</small></div>
+      <div class="dpad">
+        <button class="dkey up"    id="drive-up"    data-cmd="I" aria-label="Forward">▲</button>
+        <button class="dkey left"  id="drive-left"  data-cmd="J" aria-label="Left">◀</button>
+        <button class="dkey stop"  id="drive-stop"  data-cmd="X" aria-label="Emergency stop">STOP</button>
+        <button class="dkey right" id="drive-right" data-cmd="L" aria-label="Right">▶</button>
+        <button class="dkey down"  id="drive-down"  data-cmd="K" aria-label="Back">▼</button>
+      </div>
+    </section>
+
+    <section class="card pad-card" aria-labelledby="pad-title">
+      <div class="card-head">
+        <h2 id="pad-title">Actions</h2>
+        <button id="btn-edit" class="chip" aria-pressed="false">✏️ Edit</button>
+      </div>
+      <div id="edit-hint" class="edit-hint" hidden>Tap any button to change it. Dashed tiles are free slots for new robot functions.</div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </main>
+
+  <nav class="dock">
+    <button id="btn-console" class="dock-btn">⌨️<span>Console</span></button>
+    <button id="btn-settings" class="dock-btn">⚙️<span>Settings</span></button>
+  </nav>
+
+  <!-- Console drawer -->
+  <aside id="console" class="drawer" hidden>
+    <div class="drawer-head">
+      <h2>Console</h2>
+      <button class="icon-btn" data-close="console" aria-label="Close console">✕</button>
+    </div>
+    <div id="log" class="log"></div>
+    <form id="raw-form" class="raw-form">
+      <input id="raw-input" autocomplete="off" placeholder="Send raw text, e.g. H  or  \x1B[A">
+      <button class="chip chip-solid" type="submit">Send</button>
+    </form>
+  </aside>
+
+  <!-- Settings drawer -->
+  <aside id="settings" class="drawer" hidden>
+    <div class="drawer-head">
+      <h2>Settings</h2>
+      <button class="icon-btn" data-close="settings" aria-label="Close settings">✕</button>
+    </div>
+    <div class="settings-body">
+      <label class="toggle"><input type="checkbox" id="set-stop-release"> <span>Send STOP (X) when I let go of a drive arrow</span></label>
+      <label class="toggle"><input type="checkbox" id="set-haptics"> <span>Vibrate on button press</span></label>
+      <label class="toggle"><input type="checkbox" id="set-wakelock"> <span>Keep screen on while connected</span></label>
+      <label class="field"><span>Hold-repeat speed (ms)</span><input type="number" id="set-repeat" min="60" max="1000" step="10"></label>
+      <label class="field"><span>Baud rate</span><input type="number" id="set-baud" min="1200" step="1"></label>
+      <div class="settings-actions">
+        <button id="btn-export" class="chip">⬇️ Export layout</button>
+        <label class="chip">⬆️ Import layout<input type="file" id="file-import" accept="application/json" hidden></label>
+        <button id="btn-add-slot" class="chip">➕ Add free slot</button>
+        <button id="btn-forget" class="chip">🔌 Forget robot</button>
+        <button id="btn-reset" class="chip chip-danger">↺ Reset to defaults</button>
+      </div>
+      <p class="muted">Tip: in Chrome tap ⋮ → <b>Add to Home screen</b> to use this like a normal app.</p>
+    </div>
+  </aside>
+
+  <!-- Slot editor -->
+  <dialog id="editor" class="editor">
+    <form method="dialog" id="editor-form">
+      <h2 id="editor-title">Edit button</h2>
+      <div class="preview-wrap"><div id="editor-preview" class="tile"></div></div>
+      <label class="field"><span>Label</span><input id="ed-label" maxlength="16" placeholder="e.g. Dance"></label>
+      <label class="field"><span>Icon (emoji)</span><input id="ed-icon" maxlength="4" placeholder="🎵"></label>
+      <div class="emoji-row" id="emoji-row"></div>
+      <label class="field"><span>Command sent to robot</span><input id="ed-cmd" placeholder="e.g. R" autocomplete="off" autocapitalize="characters"></label>
+      <p class="muted small">Usually one letter, matching a <code>case</code> in <code>handleCommand()</code>. Escapes allowed: <code>\n</code> <code>\r</code> <code>\xHH</code></p>
+      <span class="field-label">Colour</span>
+      <div class="swatches" id="swatches"></div>
+      <label class="toggle"><input type="checkbox" id="ed-repeat"> <span>Repeat while held (for movement)</span></label>
+      <div class="move-row">
+        <button type="button" class="chip" id="ed-left">◀ Move</button>
+        <button type="button" class="chip" id="ed-right">Move ▶</button>
+      </div>
+      <div class="editor-actions">
+        <button type="button" class="chip chip-danger" id="ed-clear">Make free slot</button>
+        <button type="button" class="chip" id="ed-delete">Delete slot</button>
+        <span class="spacer"></span>
+        <button type="button" id="ed-cancel" class="chip">Cancel</button>
+        <button type="submit" id="ed-save" class="chip chip-solid">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "KeyBot Pad",
+  "short_name": "KeyBot Pad",
+  "description": "Bluetooth macro pad for the Keyestudio KeyBot tamagotchi robot",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0a1c",
+  "theme_color": "#120d24",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
